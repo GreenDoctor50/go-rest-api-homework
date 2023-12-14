@@ -70,6 +70,11 @@ func postTask(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Проверяем существование задачи
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(res, "Задача с таким ID уже существует", http.StatusBadRequest)
+		return
+	}
 	// Сохраняем задачу в слайсе tasks
 	tasks[task.ID] = task
 	resp, err := json.Marshal(tasks[task.ID])
@@ -86,13 +91,13 @@ func getTask(res http.ResponseWriter, req *http.Request) {
 	// Проверяем существование задачи
 	task, ok := tasks[id]
 	if !ok {
-		http.Error(res, "Задача не найдена", http.StatusBadRequest)
+		http.Error(res, "Задача не найдена", http.StatusNotFound)
 		return
 	}
 	// Сериализуем данные
 	resp, err := json.Marshal(task)
 	if err != nil {
-		http.Error(res, "Ошибка сериализации", http.StatusBadRequest)
+		http.Error(res, fmt.Sprintf("Ошибка сериализации: %v", err), http.StatusInternalServerError)
 		return
 	}
 	res.Header().Set("Content-Type", "application/json")
